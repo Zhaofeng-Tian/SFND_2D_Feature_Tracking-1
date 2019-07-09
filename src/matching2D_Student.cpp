@@ -101,3 +101,111 @@ void detKeypointsShiTomasi(vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool b
         cv::waitKey(0);
     }
 }
+
+void detKeypointsHarris(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool bVis)
+{
+    double t = (double)cv::getTickCount();
+
+    const int blockSize = 4;
+    const int apertureSize = 3;
+    const double k = 0.04;
+    cv::Mat dst = cv::Mat::zeros(img.size(), CV_32FC1);
+    cornerHarris(img, dst, blockSize, apertureSize, k);
+    cv::Mat dst_norm, dst_norm_scaled;
+    normalize(dst, dst_norm, 0, 255, cv::NORM_MINMAX, CV_32FC1, cv::Mat());
+    convertScaleAbs(dst_norm, dst_norm_scaled);
+
+    for (size_t r = 0; r < dst_norm.rows; r++)
+    {
+        for (size_t c = 0; c < dst_norm.cols; c++)
+        {
+            int response = (int)dst_norm.at<float>(r, c);
+            const double minResponse = 100;
+            if (response <= minResponse)
+                continue;
+            cv::KeyPoint kp;
+            kp.pt = cv::Point2f(c, r);
+            kp.size = 2 * apertureSize;
+            kp.response = response;
+            bool overlap = false;
+            const double maxOverlap = 0;
+            for (auto it = keypoints.begin(); it != keypoints.end(); ++it)
+            {
+                double kpOverlap = cv::KeyPoint::overlap(kp, *it);
+                if (kpOverlap > maxOverlap)
+                {
+                    overlap = true;
+                    if (kp.response > it->response)
+                    {
+                        *it = kp;
+                        break;
+                    }
+                }
+            }
+            if (!overlap)
+                keypoints.push_back(kp);
+        }
+    }
+
+    cout << "Harris detection with n=" << keypoints.size() << " keypoints in " << 1000 * t / 1.0 << " ms" << endl;
+
+    if (bVis)
+    {
+        string windowName = "Harris detector results";
+        cv::namedWindow(windowName);
+        cv::imshow(windowName, dst_norm_scaled);
+        cv::waitKey(0);
+    }
+}
+
+void detKeypointsModern(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, std::string detectorType, bool bVis)
+{
+    double t = (double)cv::getTickCount();
+    
+    if (detectorType.compare("FAST") == 0)
+    {
+        int threshold = 30; // difference between intensity of the central pixel and pixels of a circle around this pixel
+        bool bNMS = true; // perform non-maxima suppression on keypoints
+        cv::FastFeatureDetector::DetectorType type = cv::FastFeatureDetector::TYPE_9_16; // TYPE_9_16, TYPE_7_12, TYPE_5_8
+        cv::Ptr<cv::FeatureDetector> detector = cv::FastFeatureDetector::create(threshold, bNMS, type);
+        detector->detect(img, keypoints);
+    }
+    else if (detectorType.compare("BRISK") == 0)
+    {
+        cv::Ptr<cv::BRISK> brisk = cv::BRISK::create();
+        brisk->detect(img, keypoints);
+    }
+    else if (detectorType.compare("ORB") == 0) 
+    {
+        cv::Ptr<cv::ORB> orb = cv::ORB::create();
+        orb->detect(img, keypoints);
+    }
+    else if (detectorType.compare("AKAZE") == 0) 
+    {
+        cv::Ptr<cv::AKAZE> orb = cv::AKAZE::create();
+        orb->detect(img, keypoints);
+    }
+    else if (detectorType.compare("SIFT") == 0)
+    {
+        cv::Ptr<cv::Feature2D> sift = cv::xfeatures2d::SIFT::create();
+        sift->detect(img, keypoints);
+    }
+    else
+    {
+        cout << "wrong detector type" << endl;
+        throw std::runtime_error("wrong detector type");
+    }
+
+    t = ((double)cv::getTickCount() - t) / cv::getTickFrequency();
+    cout << detectorType + " detector with n= " << keypoints.size() << " keypoints in " << 1000 * t / 1.0 << " ms" << endl;
+
+    if (bVis)
+    {
+        cv::Mat visImage = img.clone();
+        cv::drawKeypoints(img, keypoints, visImage, cv::Scalar::all(-1), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+        string windowName = detectorType + " Results";
+        cv::namedWindow(windowName, 2);
+        imshow(windowName, visImage);
+        cv::waitKey(0);
+    }
+}
