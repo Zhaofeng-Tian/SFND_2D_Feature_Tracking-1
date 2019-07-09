@@ -8,7 +8,16 @@ Harris detector implemented with non-maximum suppression.
 Other detectors implemented in plain open-cv.
 
 MP.3 Keypoint Removal
-Keypoint outside of Rect are erased from vector
+Keypoint outside of Rect are erased from vector.
+
+MP.4 Keypoint Descriptors
+BRIEF, ORB, FREAK, AKAZE and SIFT descriptors are implemented.
+
+MP.5 Descriptor Matching
+FLANN matching and  k-nearest neighbor selection are impplemented.
+
+MP.6 Descriptor Distance Ratio
+Descriptor distance ratio test is implemented.
 
 ## Dependencies for Running Locally
 * cmake >= 2.8
