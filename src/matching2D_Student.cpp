@@ -172,22 +172,49 @@ void detKeypointsModern(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, std:
     }
     else if (detectorType.compare("BRISK") == 0)
     {
-        cv::Ptr<cv::BRISK> brisk = cv::BRISK::create();
+        int thresh = 30;
+        int octaves = 3;
+        float patternScale = 1.0;
+        cv::Ptr<cv::BRISK> brisk = cv::BRISK::create(thresh, octaves, patternScale);
         brisk->detect(img, keypoints);
     }
     else if (detectorType.compare("ORB") == 0) 
     {
-        cv::Ptr<cv::ORB> orb = cv::ORB::create();
+        int nfeatures = 500;
+        float scaleFactor = 1.2f;
+        int nlevels = 8;
+        int edgeThreshold = 31;
+        int firstLevel = 0;
+        int WTA_K = 2;
+        cv::ORB::ScoreType scoreType = cv::ORB::HARRIS_SCORE;
+        int patchSize = 31;
+        int fastThreshold = 20;
+        cv::Ptr<cv::ORB> orb = cv::ORB::create(nfeatures, scaleFactor, nlevels, edgeThreshold, firstLevel,
+            WTA_K, scoreType, patchSize, fastThreshold);
         orb->detect(img, keypoints);
     }
     else if (detectorType.compare("AKAZE") == 0) 
     {
-        cv::Ptr<cv::AKAZE> orb = cv::AKAZE::create();
+        cv::AKAZE::DescriptorType descriptor_type = cv::AKAZE::DESCRIPTOR_MLDB;
+        int descriptor_size = 0;
+        int descriptor_channels = 1;
+        float threshold = 0.001f;
+        int nOctaves = 4;
+        int nOctaveLayers = 4;
+        cv::KAZE::DiffusivityType diffusivity = cv::KAZE::DIFF_PM_G2;
+        cv::Ptr<cv::AKAZE> orb = cv::AKAZE::create(descriptor_type, descriptor_size, descriptor_channels, 
+            threshold, nOctaves, nOctaveLayers, diffusivity);
         orb->detect(img, keypoints);
     }
     else if (detectorType.compare("SIFT") == 0)
     {
-        cv::Ptr<cv::Feature2D> sift = cv::xfeatures2d::SIFT::create();
+        int nfeatures = 0;
+        int nOctaveLayers = 3;
+        double contrastThreshold = 0.04;
+        double edgeThreshold = 10; 
+        double sigma = 1.6;
+        cv::Ptr<cv::Feature2D> sift = cv::xfeatures2d::SIFT::create(nfeatures, nOctaveLayers, contrastThreshold,
+            edgeThreshold, sigma);
         sift->detect(img, keypoints);
     }
     else
