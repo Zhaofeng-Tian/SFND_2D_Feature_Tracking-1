@@ -7,6 +7,9 @@ MP.2 Keypoint Detection
 Harris detector implemented with non-maximum suppression.
 Other detectors implemented in plain open-cv.
 
+MP.3 Keypoint Removal
+Keypoint outside of Rect are erased from vector
+
 ## Dependencies for Running Locally
 * cmake >= 2.8
   * All OSes: [click here for installation instructions](https://cmake.org/install/)
